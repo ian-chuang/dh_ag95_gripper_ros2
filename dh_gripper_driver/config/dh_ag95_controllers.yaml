@@ -1,0 +1,24 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 500  # Hz
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    dh_ag95_gripper_controller:
+      type: position_controllers/GripperActionController
+    forward_position_controller:
+      type: forward_command_controller/ForwardCommandController
+
+dh_ag95_gripper_controller:
+  ros__parameters:
+    default: true
+    joint: left_outer_knuckle_joint
+    use_effort_interface: true
+    use_speed_interface: true
+
+forward_position_controller:
+  ros__parameters:
+    joints:
+      - left_outer_knuckle_joint
+    interface_name: position
+
+# rostopic pub /forward_position_controller/commands std_msgs/Float64MultiArray "{data:[0.9]}"

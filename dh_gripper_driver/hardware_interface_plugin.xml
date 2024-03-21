@@ -1,0 +1,7 @@
+<library path="dh_gripper_driver">
+    <class name="dh_gripper_driver/DHGripperHardwareInterface" type="dh_gripper_driver::DHGripperHardwareInterface" base_class_type="hardware_interface::SystemInterface">
+        <description>
+            ROS2 controller for the DH gripper.
+        </description>
+    </class>
+</library>

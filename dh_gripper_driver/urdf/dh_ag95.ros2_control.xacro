@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:macro name="dh_ag95_gripper_ros2_control" params="name prefix com_port:=/dev/ttyUSB0 use_mock_hardware:=false mock_sensor_commands:=false">
+
+        <ros2_control name="${name}" type="system">
+            <hardware>
+                <xacro:if value="${use_mock_hardware}">
+                    <plugin>mock_components/GenericSystem</plugin>
+                    <param name="fake_sensor_commands">${fake_sensor_commands}</param>
+                    <param name="state_following_offset">0.0</param>
+                </xacro:if>
+                <xacro:unless value="${use_mock_hardware}">
+                    <plugin>dh_gripper_driver/DHGripperHardwareInterface</plugin>
+                    <param name="gripper_closed_position">0.93</param>
+                    <param name="gripper_connect_port">${com_port}</param>
+                    <param name="gripper_id">1</param>
+                    <param name="gripper_model">AG95_MB</param>
+                    <param name="gripper_baudrate">115200</param>
+                    <param name="gripper_speed_multiplier">1.0</param>
+                    <param name="gripper_force_multiplier">0.5</param>
+                </xacro:unless>
+            </hardware>
+
+            <joint name="${prefix}left_outer_knuckle_joint">
+                <command_interface name="position">
+                    <param name="min">0</param>
+                    <param name="max">0.93</param>
+                </command_interface>
+                <state_interface name="position">
+                    <param name="initial_value">0</param>
+                </state_interface>
+            </joint>
+            <xacro:if value="${use_mock_hardware}">
+                <joint name="${prefix}right_outer_knuckle_joint">
+                    <param name="mimic">${prefix}left_outer_knuckle_joint</param>
+                    <param name="multiplier">1</param>
+                    <command_interface name="position"/>
+                    <state_interface name="position"/>
+                </joint>
+                <joint name="${prefix}left_inner_knuckle_joint">
+                    <param name="mimic">${prefix}left_outer_knuckle_joint</param>
+                    <param name="multiplier">1</param>
+                    <command_interface name="position"/>
+                    <state_interface name="position"/>
+                </joint>
+                <joint name="${prefix}right_inner_knuckle_joint">
+                    <param name="mimic">${prefix}left_outer_knuckle_joint</param>
+                    <param name="multiplier">1</param>
+                    <command_interface name="position"/>
+                    <state_interface name="position"/>
+                </joint>
+                <joint name="${prefix}left_finger_joint">
+                    <param name="mimic">${prefix}left_outer_knuckle_joint</param>
+                    <param name="multiplier">1</param>
+                    <command_interface name="position"/>
+                    <state_interface name="position"/>
+                </joint>
+                <joint name="${prefix}right_finger_joint">
+                    <param name="mimic">${prefix}left_outer_knuckle_joint</param>
+                    <param name="multiplier">1</param>
+                    <command_interface name="position"/>
+                    <state_interface name="position"/>
+                </joint>
+            </xacro:if>
+
+        </ros2_control>
+    </xacro:macro>
+
+</robot>
