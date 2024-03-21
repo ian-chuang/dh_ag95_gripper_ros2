@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot name="dh_ag95_gripper" xmlns:xacro="http://ros.org/wiki/xacro">
+    <!-- import main macro -->
+    <xacro:include filename="$(find dh_ag95_description)/urdf/dh_ag95_macro.xacro" />
+
+    <!-- gripper -->
+    <xacro:dh_ag95_gripper
+        prefix=""
+        parent="world">
+        <origin xyz="0 0 0.1" rpy="0 0 0" />
+    </xacro:dh_ag95_gripper>
+
+
+    <link name="world" />
+
+</robot>
