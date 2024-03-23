@@ -8,10 +8,10 @@
     *origin"
   >
 
-    <xacro:property name="lower_limit" value="0" />
+    <xacro:property name="lower_limit" value="0.0" />
     <xacro:property name="upper_limit" value="0.93" />
     <xacro:property name="max_effort" value="50.0" />
-    <xacro:property name="max_velocity" value="2.0" />
+    <xacro:property name="max_velocity" value="2.1" />
 
     <!-- fingers links macros -->
     <xacro:macro name="outer_knuckle" params="prefix fingerprefix">
