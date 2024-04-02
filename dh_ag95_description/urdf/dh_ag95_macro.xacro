@@ -3,7 +3,8 @@
 
   <xacro:macro name="dh_ag95_gripper"
     params="
-    prefix 
+    prefix
+    grasp_link_offset:=0.19
     parent
     *origin"
   >
@@ -277,6 +278,14 @@
       <origin xyz="-0.0405 -0.0143 0.0147" rpy="0 0 0" />
       <parent link="${prefix}ag95_base_link" />
       <child link="${prefix}ag95_body" />
+    </joint>
+
+    <link name="${prefix}grasp_link"/>
+
+    <joint name="${prefix}grasp_joint" type="fixed">
+      <parent link="${prefix}ag95_base_link" />
+      <child link="${prefix}grasp_link" />
+      <origin xyz="0.0 0.0 ${grasp_link_offset}" rpy="${pi/2} ${-pi/2} 0" />
     </joint>
 
 
