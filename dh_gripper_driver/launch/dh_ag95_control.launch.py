@@ -16,7 +16,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "com_port",
-            default_value="/dev/ttyUSB0",
+            default_value="/dev/robot/dh_ag95_gripper",
             description="COM port of the gripper.",
         )
     )
