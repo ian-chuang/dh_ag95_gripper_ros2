@@ -12,8 +12,6 @@ dh_ag95_gripper_controller:
   ros__parameters:
     default: true
     joint: left_outer_knuckle_joint
-    use_effort_interface: false
-    use_speed_interface: false
 
 forward_position_controller:
   ros__parameters:

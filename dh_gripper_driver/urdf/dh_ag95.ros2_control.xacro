@@ -30,6 +30,7 @@
                 <state_interface name="position">
                     <param name="initial_value">0</param>
                 </state_interface>
+                <state_interface name="velocity"/>
             </joint>
             <xacro:if value="${use_mock_hardware}">
                 <joint name="${prefix}right_outer_knuckle_joint">
@@ -37,30 +38,35 @@
                     <param name="multiplier">1</param>
                     <command_interface name="position"/>
                     <state_interface name="position"/>
+                    <state_interface name="velocity"/>
                 </joint>
                 <joint name="${prefix}left_inner_knuckle_joint">
                     <param name="mimic">${prefix}left_outer_knuckle_joint</param>
                     <param name="multiplier">1</param>
                     <command_interface name="position"/>
                     <state_interface name="position"/>
+                    <state_interface name="velocity"/>
                 </joint>
                 <joint name="${prefix}right_inner_knuckle_joint">
                     <param name="mimic">${prefix}left_outer_knuckle_joint</param>
                     <param name="multiplier">1</param>
                     <command_interface name="position"/>
                     <state_interface name="position"/>
+                    <state_interface name="velocity"/>
                 </joint>
                 <joint name="${prefix}left_finger_joint">
                     <param name="mimic">${prefix}left_outer_knuckle_joint</param>
                     <param name="multiplier">1</param>
                     <command_interface name="position"/>
                     <state_interface name="position"/>
+                    <state_interface name="velocity"/>
                 </joint>
                 <joint name="${prefix}right_finger_joint">
                     <param name="mimic">${prefix}left_outer_knuckle_joint</param>
                     <param name="multiplier">1</param>
                     <command_interface name="position"/>
                     <state_interface name="position"/>
+                    <state_interface name="velocity"/>
                 </joint>
             </xacro:if>
 

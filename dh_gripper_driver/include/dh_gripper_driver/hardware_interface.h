@@ -141,6 +141,7 @@ protected:
   static constexpr double NO_NEW_CMD_ = std::numeric_limits<double>::quiet_NaN();
 
   double gripper_position_ = 0.0;
+  double gripper_velocity_ = 0.0;
   double gripper_position_command_ = 0.0;
 
   std::atomic<int> write_command_;
