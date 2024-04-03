@@ -136,25 +136,33 @@ protected:
   void background_task();
   bool init_gripper();
 
+  // defines max gripper position (in URDF radians)
   double gripper_closed_pos_ = 0.0;
 
+  // constant to indicate no new command
   static constexpr double NO_NEW_CMD_ = std::numeric_limits<double>::quiet_NaN();
 
+  // Joint state
   double gripper_position_ = 0.0;
   double gripper_velocity_ = 0.0;
   double gripper_position_command_ = 0.0;
 
+  // Joint command (atomic to avoid race conditions since it is written from the ROS2 thread)
   std::atomic<int> write_command_;
   std::atomic<int> write_force_;
   std::atomic<int> write_speed_;
   std::atomic<int> gripper_current_state_;
 
+  // Gripper reactivation
   double reactivate_gripper_cmd_ = 0.0;
   std::atomic<bool> reactivate_gripper_async_cmd_;
   double reactivate_gripper_response_ = 0.0;
+  std::atomic<std::optional<bool>> reactivate_gripper_async_response_;
+
+  // Gripper force and speed
   double gripper_force_ = 0.0;
   double gripper_speed_ = 0.0;
-  std::atomic<std::optional<bool>> reactivate_gripper_async_response_;
+  
 };
 
 }  // namespace dh_gripper_driver

@@ -86,7 +86,8 @@ def generate_launch_description():
         ]
     )
     robot_description = {"robot_description": robot_description_content}
-
+    
+    # Load controllers configuration
     robot_controllers = PathJoinSubstitution(
         [
             FindPackageShare("dh_gripper_driver"),
@@ -94,10 +95,12 @@ def generate_launch_description():
             "dh_ag95_controllers.yaml",
         ]
     )
+    # Load RViz configuration
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare("dh_gripper_driver"), "rviz", "dh_ag95_control.rviz"]
     )
 
+    # controller manager node
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
@@ -107,12 +110,14 @@ def generate_launch_description():
             ('controller_manager/robot_description', 'robot_description'),
         ],
     )
+    # robot state publisher node
     robot_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
     )
+    # rviz node
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -122,6 +127,7 @@ def generate_launch_description():
         condition=IfCondition(gui),
     )
 
+    # helper function to spawn controllers
     def controller_spawner(name, *args):
         return Node(
             package="controller_manager",

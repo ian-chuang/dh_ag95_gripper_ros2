@@ -9,6 +9,8 @@
     *origin"
   >
 
+    <!-- this URDF is overly complicated IMO don't bother trying to understand it lol -->
+
     <xacro:property name="lower_limit" value="0.0" />
     <xacro:property name="upper_limit" value="0.93" />
     <xacro:property name="max_effort" value="50.0" />

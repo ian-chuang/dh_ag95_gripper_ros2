@@ -8,15 +8,15 @@ controller_manager:
     forward_position_controller:
       type: forward_command_controller/ForwardCommandController
 
+# gripper action controller for moveit
 dh_ag95_gripper_controller:
   ros__parameters:
     default: true
     joint: left_outer_knuckle_joint
 
+# forward command controller for easier operation
 forward_position_controller:
   ros__parameters:
     joints:
       - left_outer_knuckle_joint
     interface_name: position
-
-# rostopic pub /forward_position_controller/commands std_msgs/Float64MultiArray "{data:[0.9]}"

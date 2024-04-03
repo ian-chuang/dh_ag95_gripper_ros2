@@ -41,6 +41,7 @@
 
 const auto kLogger = rclcpp::get_logger("DHGripperHardwareInterface");
 
+// Constants specific to AG95 gripper.
 constexpr int kGripperMinPos = 0;
 constexpr int kGripperMaxPos = 1000;
 constexpr int kGripperMinSpeed = 1;    
@@ -50,21 +51,24 @@ constexpr int kGripperMaxforce = 100;
 constexpr int kGripperRangePos = kGripperMaxPos - kGripperMinPos;
 constexpr int kGripperRangeSpeed = kGripperMaxSpeed - kGripperMinSpeed;
 constexpr int kGripperRangeForce = kGripperMaxforce - kGripperMinforce;
-
+// Period of the communication loop.
 constexpr auto kGripperCommsLoopPeriod = std::chrono::milliseconds{ 10 };
 
 namespace dh_gripper_driver
 {
 DHGripperHardwareInterface::DHGripperHardwareInterface()
 {
+  // Create the driver factory.
   driver_factory_ = std::make_unique<DH_Gripper_Factory>();
 }
 
 DHGripperHardwareInterface::~DHGripperHardwareInterface()
 {
+  // end the communication thread
   communication_thread_is_running_.store(false);
   if (communication_thread_.joinable())
   {
+    // wait for the thread to finish
     communication_thread_.join();
   }
 
@@ -83,6 +87,7 @@ hardware_interface::CallbackReturn DHGripperHardwareInterface::on_init(const har
   // Read parameters.
   gripper_closed_pos_ = stod(info_.hardware_parameters["gripper_closed_position"]);
 
+  // Initialize variables.
   gripper_position_ = std::numeric_limits<double>::quiet_NaN();
   gripper_velocity_ = std::numeric_limits<double>::quiet_NaN();
   gripper_position_command_ = std::numeric_limits<double>::quiet_NaN();
@@ -90,7 +95,6 @@ hardware_interface::CallbackReturn DHGripperHardwareInterface::on_init(const har
   reactivate_gripper_async_cmd_.store(false);
 
   const hardware_interface::ComponentInfo& joint = info_.joints[0];
-
   // There is one command interface: position.
   if (joint.command_interfaces.size() != 1)
   {
@@ -98,7 +102,6 @@ hardware_interface::CallbackReturn DHGripperHardwareInterface::on_init(const har
                  joint.command_interfaces.size());
     return CallbackReturn::ERROR;
   }
-
   if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION)
   {
     RCLCPP_FATAL(kLogger, "Joint '%s' has %s command interfaces found. '%s' expected.", joint.name.c_str(),
@@ -126,6 +129,7 @@ hardware_interface::CallbackReturn DHGripperHardwareInterface::on_init(const har
     }
   }
 
+  // get driver parameters
   std::string gripper_id = info_.hardware_parameters["gripper_id"];
   std::string gripper_model = info_.hardware_parameters["gripper_model"];
   std::string gripper_connect_port = info_.hardware_parameters["gripper_connect_port"];
@@ -133,7 +137,9 @@ hardware_interface::CallbackReturn DHGripperHardwareInterface::on_init(const har
 
   try
   {
+    // set factory params
     driver_factory_->Set_Parameter(atoi(gripper_id.c_str()), gripper_connect_port, atoi(gripper_baudrate.c_str()));
+    // create the driver
     driver_ = std::unique_ptr<DH_Gripper>(driver_factory_->CreateGripper(gripper_model));
   }
   catch (const std::exception& e)
@@ -164,6 +170,7 @@ DHGripperHardwareInterface::on_configure(const rclcpp_lifecycle::State& previous
 
     // Open the serial port and handshake.
     int connected = driver_->open();
+    // Check if the connection was successful.
     if (connected < 0)
     {
       RCLCPP_ERROR(kLogger, "Unable to open connect port to %s", info_.hardware_parameters["gripper_connect_port"].c_str());
@@ -184,6 +191,7 @@ DHGripperHardwareInterface::on_cleanup(const rclcpp_lifecycle::State& previous_s
   RCLCPP_DEBUG(kLogger, "on_cleanup");
   try
   {
+    // close the gripper connection
     driver_->close();
   }
   catch (const std::exception& e)
@@ -197,6 +205,8 @@ DHGripperHardwareInterface::on_cleanup(const rclcpp_lifecycle::State& previous_s
 std::vector<hardware_interface::StateInterface> DHGripperHardwareInterface::export_state_interfaces()
 {
   RCLCPP_DEBUG(kLogger, "export_state_interfaces");
+
+  // export position and velocity state interfaces
 
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
@@ -212,11 +222,15 @@ std::vector<hardware_interface::CommandInterface> DHGripperHardwareInterface::ex
 {
   RCLCPP_DEBUG(kLogger, "export_command_interfaces");
 
+  // export position command interface
+
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
   command_interfaces.emplace_back(hardware_interface::CommandInterface(
       info_.joints[0].name, hardware_interface::HW_IF_POSITION, &gripper_position_command_));
 
+  // export set gripper max velocity and max effort command interfaces
+  // gripper speed and force are multipliers to the gripper's max speed and force (0-1 range)
   command_interfaces.emplace_back(
       hardware_interface::CommandInterface(info_.joints[0].name, "set_gripper_max_velocity", &gripper_speed_));
   gripper_speed_ = info_.hardware_parameters.count("gripper_speed_multiplier") ?
@@ -228,6 +242,8 @@ std::vector<hardware_interface::CommandInterface> DHGripperHardwareInterface::ex
   gripper_force_ = info_.hardware_parameters.count("gripper_force_multiplier") ?
                        info_.hardware_parameters.count("gripper_force_multiplier") :
                        1.0;
+
+  // export reactivation command interface
 
   command_interfaces.emplace_back(
       hardware_interface::CommandInterface("reactivate_gripper", "reactivate_gripper_cmd", &reactivate_gripper_cmd_));
@@ -242,7 +258,7 @@ DHGripperHardwareInterface::on_activate(const rclcpp_lifecycle::State& /*previou
 {
   RCLCPP_DEBUG(kLogger, "on_activate");
 
-  // set some default values for joints
+  // set some default values for joints if they are not set
   if (std::isnan(gripper_position_))
   {
     gripper_position_ = 0;
@@ -253,6 +269,7 @@ DHGripperHardwareInterface::on_activate(const rclcpp_lifecycle::State& /*previou
   // Activate the gripper.
   try
   {
+    // Initialize the gripper.
     bool success = init_gripper();
     if (!success)
     {
@@ -260,6 +277,7 @@ DHGripperHardwareInterface::on_activate(const rclcpp_lifecycle::State& /*previou
       return CallbackReturn::ERROR;
     }
 
+    // start the communication thread
     communication_thread_is_running_.store(true);
     communication_thread_ = std::thread([this] { this->background_task(); });
   }
@@ -278,6 +296,7 @@ DHGripperHardwareInterface::on_deactivate(const rclcpp_lifecycle::State& /*previ
 {
   RCLCPP_DEBUG(kLogger, "on_deactivate");
 
+  // end the communication thread
   communication_thread_is_running_.store(false);
   communication_thread_.join();
   if (communication_thread_.joinable())
@@ -285,15 +304,6 @@ DHGripperHardwareInterface::on_deactivate(const rclcpp_lifecycle::State& /*previ
     communication_thread_.join();
   }
 
-  // try
-  // {
-  //   driver_->close();
-  // }
-  // catch (const std::exception& e)
-  // {
-  //   RCLCPP_ERROR(kLogger, "Failed to deactivate the DH gripper: %s", e.what());
-  //   return CallbackReturn::ERROR;
-  // }
   RCLCPP_INFO(kLogger, "DH Gripper successfully deactivated!");
   return CallbackReturn::SUCCESS;
 }
@@ -301,10 +311,14 @@ DHGripperHardwareInterface::on_deactivate(const rclcpp_lifecycle::State& /*previ
 hardware_interface::return_type DHGripperHardwareInterface::read(const rclcpp::Time& /*time*/,
                                                                       const rclcpp::Duration& period)
 {
+  // store last gripper position
   auto old_gripper_position = gripper_position_;
+  // read in the gripper position. Convert the position from gripper range (0-1000) to the joint range (0-gripper_closed_pos_).
   gripper_position_ = gripper_closed_pos_ * (1 - (static_cast<double>(gripper_current_state_.load()) - static_cast<double>(kGripperMinPos)) / static_cast<double>(kGripperRangePos));
+  // gripper velocity is the difference in position divided by the time step
   gripper_velocity_ = (gripper_position_ - old_gripper_position) / (period.seconds() + 1e-9);
 
+  // reactivate if needed
   if (!std::isnan(reactivate_gripper_cmd_))
   {
     RCLCPP_INFO(kLogger, "Sending gripper reactivation request.");
@@ -312,6 +326,7 @@ hardware_interface::return_type DHGripperHardwareInterface::read(const rclcpp::T
     reactivate_gripper_cmd_ = NO_NEW_CMD_;
   }
 
+  // read the reactivation response
   if (reactivate_gripper_async_response_.load().has_value())
   {
     reactivate_gripper_response_ = reactivate_gripper_async_response_.load().value();
@@ -324,8 +339,10 @@ hardware_interface::return_type DHGripperHardwareInterface::read(const rclcpp::T
 hardware_interface::return_type DHGripperHardwareInterface::write(const rclcpp::Time& /*time*/,
                                                                        const rclcpp::Duration& /*period*/)
 {
+  // Write the command to the gripper. Convert the joint position from the joint range (0-gripper_closed_pos_) to the gripper range (0-1000).
   int gripper_pos = (1-(gripper_position_command_ / gripper_closed_pos_)) * kGripperRangePos + kGripperMinPos;
   write_command_.store(gripper_pos);
+  // Write the gripper speed and force. Convert from the multiplier range (0-1) to the apropriate range for the gripper.
   int gripper_speed = (gripper_speed_ * kGripperRangeSpeed) + kGripperMinSpeed;
   write_speed_.store(gripper_speed);
   int gripper_force = (gripper_force_ * kGripperRangeForce) + kGripperMinforce;
@@ -344,11 +361,13 @@ void DHGripperHardwareInterface::background_task()
       // (this can be used, for example, to re-run the auto-calibration).
       if (reactivate_gripper_async_cmd_.load())
       {
+        // Re-activate the gripper.
         bool success = init_gripper();
         if (!success)
         {
           throw std::runtime_error("Failed to re-activate the DH gripper.");
         }
+        // Reset the command and set the response.
         reactivate_gripper_async_cmd_.store(false);
         reactivate_gripper_async_response_.store(true);
       }
@@ -368,18 +387,23 @@ void DHGripperHardwareInterface::background_task()
       RCLCPP_ERROR(kLogger, "Error: %s", e.what());
     }
 
+    // sleep for period
     std::this_thread::sleep_for(kGripperCommsLoopPeriod);
   }
 }
 
 bool DHGripperHardwareInterface::init_gripper()
 {
+  // get initialization state
   int initstate = 0;
   driver_->GetInitState(initstate);
   const std::chrono::seconds timeoutDuration(5); // Set your desired timeout duration
 
+  // if the gripper is not initialized, initialize it
   if (initstate != DH_Gripper::S_INIT_FINISHED) {
       driver_->Initialization();
+
+      // wait for the gripper to finish initializing or timeout
       auto startTime = std::chrono::steady_clock::now();
       do {
           driver_->GetInitState(initstate);
@@ -388,6 +412,7 @@ bool DHGripperHardwareInterface::init_gripper()
                 std::chrono::steady_clock::now() - startTime < timeoutDuration);
   }
 
+  // if the gripper is still not initialized after the timeout, return false
   if (initstate != DH_Gripper::S_INIT_FINISHED) {
       RCLCPP_FATAL(kLogger, "Initialization of the Robotiq gripper timed out.");
       return false;

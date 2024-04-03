@@ -18,6 +18,7 @@
         <origin xyz="0 0 0.1" rpy="0 0 0" />
     </xacro:dh_ag95_gripper>
 
+    <!-- ros2_control -->
     <xacro:dh_ag95_gripper_ros2_control
         name="dh_ag95_gripper"
         prefix="$(arg prefix)"

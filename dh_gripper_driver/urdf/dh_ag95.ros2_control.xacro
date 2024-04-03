@@ -6,12 +6,15 @@
         <ros2_control name="${name}" type="system">
             <hardware>
                 <xacro:if value="${use_mock_hardware}">
+                    <!-- Mock hardware -->
                     <plugin>mock_components/GenericSystem</plugin>
                     <param name="mock_sensor_commands">${mock_sensor_commands}</param>
                     <param name="state_following_offset">0.0</param>
                 </xacro:if>
                 <xacro:unless value="${use_mock_hardware}">
+                    <!-- Real hardware -->
                     <plugin>dh_gripper_driver/DHGripperHardwareInterface</plugin>
+                    <!-- Parameters for the DHGripperHardwareInterface -->
                     <param name="gripper_closed_position">0.93</param>
                     <param name="gripper_connect_port">${com_port}</param>
                     <param name="gripper_id">1</param>
@@ -21,7 +24,8 @@
                     <param name="gripper_force_multiplier">0.5</param>
                 </xacro:unless>
             </hardware>
-
+            
+            <!-- Joint interfaces -->
             <joint name="${prefix}left_outer_knuckle_joint">
                 <command_interface name="position">
                     <param name="min">0</param>
