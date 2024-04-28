@@ -373,9 +373,10 @@ void DHGripperHardwareInterface::background_task()
       }
 
       // Write the latest command to the gripper.
-      this->driver_->SetTargetPosition(write_command_.load());
       this->driver_->SetTargetSpeed(write_speed_.load());
       this->driver_->SetTargetForce(write_force_.load());
+      this->driver_->SetTargetPosition(write_command_.load());
+      
 
       // Read the state of the gripper.
       int tmp_pos = 0;
