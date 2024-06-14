@@ -34,8 +34,10 @@
 #include <string>
 #include <vector>
 
-#include "dh_gripper_driver/visibility_control.h"
-#include "dh_gripper_driver/dh_gripper_factory.h"
+#include <dh_gripper_driver/visibility_control.hpp>
+
+#include <dh_gripper_driver/driver.hpp>
+#include <dh_gripper_driver/driver_factory.hpp>
 
 #include <hardware_interface/handle.hpp>
 #include <hardware_interface/hardware_info.hpp>
@@ -55,11 +57,17 @@ public:
   /**
    * Default constructor.
    */
-  DH_GRIPPER_DRIVER_PUBLIC
+  DH_DRIVER_PUBLIC
   DHGripperHardwareInterface();
 
-  DH_GRIPPER_DRIVER_PUBLIC
+  DH_DRIVER_PUBLIC
   ~DHGripperHardwareInterface();
+
+  /**
+   * Constructor with a driver factory. This method is used for testing.
+   * @param driver_factory The driver that interact with the hardware.
+   */
+  explicit DHGripperHardwareInterface(std::unique_ptr<DriverFactory> driver_factory);
 
   /**
    * Initialization of the hardware interface from data parsed from the
@@ -68,7 +76,7 @@ public:
    * @returns CallbackReturn::SUCCESS if required data are provided and can be
    * parsed or CallbackReturn::ERROR if any error happens or data are missing.
    */
-  DH_GRIPPER_DRIVER_PUBLIC
+  DH_DRIVER_PUBLIC
   CallbackReturn on_init(const hardware_interface::HardwareInfo& info) override;
 
   /**
@@ -77,19 +85,19 @@ public:
    * @returns CallbackReturn::SUCCESS if required data are provided and can be
    * parsed or CallbackReturn::ERROR if any error happens or data are missing.
    */
-  DH_GRIPPER_DRIVER_PUBLIC
+  DH_DRIVER_PUBLIC
   CallbackReturn on_configure(const rclcpp_lifecycle::State& previous_state) override;
 
   /**
    * This method exposes position and velocity of joints for reading.
    */
-  DH_GRIPPER_DRIVER_PUBLIC
+  DH_DRIVER_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
   /**
    * This method exposes the joints targets for writing.
    */
-  DH_GRIPPER_DRIVER_PUBLIC
+  DH_DRIVER_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
   /**
@@ -97,7 +105,7 @@ public:
    * @param previous_state Unconfigured, Inactive, Active or Finalized.
    * @returns CallbackReturn::SUCCESS or CallbackReturn::ERROR.
    */
-  DH_GRIPPER_DRIVER_PUBLIC
+  DH_DRIVER_PUBLIC
   CallbackReturn on_activate(const rclcpp_lifecycle::State& previous_state) override;
 
   /**
@@ -105,64 +113,52 @@ public:
    * @param previous_state Unconfigured, Inactive, Active or Finalized.
    * @returns CallbackReturn::SUCCESS or CallbackReturn::ERROR.
    */
-  DH_GRIPPER_DRIVER_PUBLIC
+  DH_DRIVER_PUBLIC
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State& previous_state) override;
-
-  DH_GRIPPER_DRIVER_PUBLIC
-  CallbackReturn on_cleanup(const rclcpp_lifecycle::State& previous_state) override;
 
   /**
    * Read data from the hardware.
    */
-  DH_GRIPPER_DRIVER_PUBLIC
+  DH_DRIVER_PUBLIC
   hardware_interface::return_type read(const rclcpp::Time& time, const rclcpp::Duration& period) override;
 
   /**
    * Write data to hardware.
    */
-  DH_GRIPPER_DRIVER_PUBLIC
+  DH_DRIVER_PUBLIC
   hardware_interface::return_type write(const rclcpp::Time& time, const rclcpp::Duration& period) override;
 
 protected:
   // Interface to send binary data to the hardware using the serial port.
-  std::unique_ptr<DH_Gripper> driver_;
+  std::unique_ptr<Driver> driver_;
 
   // Factory to create the driver during the initialization step.
-  std::unique_ptr<DH_Gripper_Factory> driver_factory_;
+  std::unique_ptr<DriverFactory> driver_factory_;
 
   // We use a thread to read/write to the driver so that we dont block the hardware_interface read/write.
   std::thread communication_thread_;
   std::atomic<bool> communication_thread_is_running_;
   void background_task();
-  bool init_gripper();
 
-  // defines max gripper position (in URDF radians)
   double gripper_closed_pos_ = 0.0;
 
-  // constant to indicate no new command
   static constexpr double NO_NEW_CMD_ = std::numeric_limits<double>::quiet_NaN();
 
-  // Joint state
   double gripper_position_ = 0.0;
   double gripper_velocity_ = 0.0;
   double gripper_position_command_ = 0.0;
 
-  // Joint command (atomic to avoid race conditions since it is written from the ROS2 thread)
-  std::atomic<int> write_command_;
-  std::atomic<int> write_force_;
-  std::atomic<int> write_speed_;
-  std::atomic<int> gripper_current_state_;
+  std::atomic<uint16_t> write_command_;
+  std::atomic<uint8_t> write_force_;
+  std::atomic<uint16_t> write_speed_;
+  std::atomic<uint16_t> gripper_current_state_;
 
-  // Gripper reactivation
   double reactivate_gripper_cmd_ = 0.0;
   std::atomic<bool> reactivate_gripper_async_cmd_;
   double reactivate_gripper_response_ = 0.0;
-  std::atomic<std::optional<bool>> reactivate_gripper_async_response_;
-
-  // Gripper force and speed
   double gripper_force_ = 0.0;
   double gripper_speed_ = 0.0;
-  
+  std::atomic<std::optional<bool>> reactivate_gripper_async_response_;
 };
 
 }  // namespace dh_gripper_driver

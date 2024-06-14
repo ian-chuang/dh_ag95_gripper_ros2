@@ -13,6 +13,7 @@ find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
+find_package(serial REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -23,18 +24,20 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   pluginlib
   rclcpp
   rclcpp_lifecycle
+  serial
 )
+
 
 add_library(
   dh_gripper_driver
   SHARED
+  src/crc_utils.cpp
+  src/data_utils.cpp
   src/hardware_interface.cpp
-  src/dh_ag95_can.cpp
-  src/dh_device.cpp
-  src/dh_dh3_can.cpp
-  src/dh_lagacy_gripper.cpp
-  src/dh_modbus_gripper.cpp
-  src/dh_rgi.cpp
+  src/default_driver.cpp
+  src/default_driver_factory.cpp
+  src/default_serial.cpp
+  src/default_serial_factory.cpp
 )
 target_link_libraries(dh_gripper_driver atomic)
 target_include_directories(
@@ -73,6 +76,7 @@ ament_export_dependencies(
   pluginlib
   rclcpp
   rclcpp_lifecycle
+  serial
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 

@@ -19,38 +19,38 @@
  * library cannot have, but the consuming code must have inorder to link.
  */
 
-#ifndef DH_GRIPPER_DRIVER__VISIBILITY_CONTROL_HPP_
-#define DH_GRIPPER_DRIVER__VISIBILITY_CONTROL_HPP_
+#ifndef DH_DRIVER__VISIBILITY_CONTROL_HPP_
+#define DH_DRIVER__VISIBILITY_CONTROL_HPP_
 
 // This logic was borrowed (then namespaced) from the examples on the gcc wiki:
 //     https://gcc.gnu.org/wiki/Visibility
 
 #if defined _WIN32 || defined __CYGWIN__
 #ifdef __GNUC__
-#define DH_GRIPPER_DRIVER_EXPORT __attribute__((dllexport))
-#define DH_GRIPPER_DRIVER_IMPORT __attribute__((dllimport))
+#define DH_DRIVER_EXPORT __attribute__((dllexport))
+#define DH_DRIVER_IMPORT __attribute__((dllimport))
 #else
-#define DH_GRIPPER_DRIVER_EXPORT __declspec(dllexport)
-#define DH_GRIPPER_DRIVER_IMPORT __declspec(dllimport)
+#define DH_DRIVER_EXPORT __declspec(dllexport)
+#define DH_DRIVER_IMPORT __declspec(dllimport)
 #endif
-#ifdef DH_GRIPPER_DRIVER_BUILDING_DLL
-#define DH_GRIPPER_DRIVER_PUBLIC DH_GRIPPER_DRIVER_EXPORT
+#ifdef DH_DRIVER_BUILDING_DLL
+#define DH_DRIVER_PUBLIC DH_DRIVER_EXPORT
 #else
-#define DH_GRIPPER_DRIVER_PUBLIC DH_GRIPPER_DRIVER_IMPORT
+#define DH_DRIVER_PUBLIC DH_DRIVER_IMPORT
 #endif
-#define DH_GRIPPER_DRIVER_PUBLIC_TYPE DH_GRIPPER_DRIVER_PUBLIC
-#define DH_GRIPPER_DRIVER_LOCAL
+#define DH_DRIVER_PUBLIC_TYPE DH_DRIVER_PUBLIC
+#define DH_DRIVER_LOCAL
 #else
-#define DH_GRIPPER_DRIVER_EXPORT __attribute__((visibility("default")))
-#define DH_GRIPPER_DRIVER_IMPORT
+#define DH_DRIVER_EXPORT __attribute__((visibility("default")))
+#define DH_DRIVER_IMPORT
 #if __GNUC__ >= 4
-#define DH_GRIPPER_DRIVER_PUBLIC __attribute__((visibility("default")))
-#define DH_GRIPPER_DRIVER_LOCAL __attribute__((visibility("hidden")))
+#define DH_DRIVER_PUBLIC __attribute__((visibility("default")))
+#define DH_DRIVER_LOCAL __attribute__((visibility("hidden")))
 #else
-#define DH_GRIPPER_DRIVER_PUBLIC
-#define DH_GRIPPER_DRIVER_LOCAL
+#define DH_DRIVER_PUBLIC
+#define DH_DRIVER_LOCAL
 #endif
-#define DH_GRIPPER_DRIVER_PUBLIC_TYPE
+#define DH_DRIVER_PUBLIC_TYPE
 #endif
 
-#endif  // DH_GRIPPER_DRIVER__VISIBILITY_CONTROL_HPP_
+#endif  // DH_DRIVER__VISIBILITY_CONTROL_HPP_
