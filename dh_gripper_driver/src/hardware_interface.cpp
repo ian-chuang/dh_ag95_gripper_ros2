@@ -296,7 +296,7 @@ DHGripperHardwareInterface::on_deactivate(const rclcpp_lifecycle::State& /*previ
 hardware_interface::return_type DHGripperHardwareInterface::read(const rclcpp::Time& /*time*/,
                                                                       const rclcpp::Duration& /*period*/)
 {
-  gripper_position_ = gripper_closed_pos_ * (gripper_current_state_.load() - kGripperMinPos) / kGripperRangePos;
+  gripper_position_ = gripper_closed_pos_ * (kGripperMaxPos - gripper_current_state_.load()) / kGripperRangePos;
 
   // print in dec
 
@@ -319,7 +319,7 @@ hardware_interface::return_type DHGripperHardwareInterface::read(const rclcpp::T
 hardware_interface::return_type DHGripperHardwareInterface::write(const rclcpp::Time& /*time*/,
                                                                        const rclcpp::Duration& /*period*/)
 {
-  uint16_t gripper_pos = (gripper_position_command_ / gripper_closed_pos_) * kGripperRangePos + kGripperMinPos;
+  uint16_t gripper_pos = kGripperMaxPos - (gripper_position_command_ / gripper_closed_pos_) * kGripperRangePos;
   gripper_pos = std::max(std::min(gripper_pos, kGripperMaxPos), kGripperMinPos);
   write_command_.store(gripper_pos);
   uint8_t gripper_force = gripper_force_ * kGripperRangeForce + kGripperMinForce;
