@@ -1,5 +1,7 @@
 # DH AG95 Gripper ROS2 Driver
 
+**Important:** This is a dependency: https://github.com/ian-chuang/serial-ros2
+
 This repository contains a ROS2 driver for controlling the DH Robotics AG95 Gripper. It builds upon the low-level code from [DH Robotics' ROS1 driver](https://github.com/DH-Robotics/dh_gripper_ros) and integrates it with ros2_control, following the structure of [ros2_robotiq_gripper](https://github.com/PickNikRobotics/ros2_robotiq_gripper).
 
 **Note:** This driver has been tested on Ubuntu 22.04 and ROS2 Humble.
